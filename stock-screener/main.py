@@ -1,13 +1,16 @@
 from typing import Optional
 
 from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
+
+templates = Jinja2Templates(directory='templates')
 
 
 @app.get("/")
 def dashboard():
-    return {"Dashboard": "Home Page"}
+    return templates.TemplateResponse("dashboard.html")
 
 
 @app.post("/stock")
