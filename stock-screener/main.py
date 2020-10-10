@@ -1,10 +1,11 @@
 import models
+import yfinance  # This is Yahoo Finance package
 from database import SessionLocal, engine
-from fastapi import FastAPI, Request, Depends
+from fastapi import Depends, FastAPI, Request, BackgroundTasks
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
 from models import Stock
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 app = FastAPI()
 
@@ -45,12 +46,43 @@ def home(request: Request):
     )
 
 
+def fetch_stock_data(id: int):
+    # New DB session
+    db = SessionLocal()
+
+    # Get first queried instance
+    stock = db.query(Stock).filter(Stock.id == id).first()
+
+    # Set attribute manually for testing if background task is running or not
+    # stock.forward_pe = 10
+
+    yahoo_data = yfinance.Ticker(stock.symbol)
+
+    stock.ma200 = yahoo_data.info['twoHundredDayAverage']
+    stock.ma50 = yahoo_data.info['fiftyDayAverage']
+    stock.price = yahoo_data.info['previousClose']
+    stock.forward_pe = yahoo_data.info['forwardPE']
+    stock.forward_eps = yahoo_data.info['forwardEps']
+
+    if yahoo_data.info['dividendYield'] is not None:
+        stock.dividend_yield = yahoo_data.info['dividendYield'] * 100
+
+    db.add(stock)
+    db.commit()
+
+
 @app.post("/stock")
-def create_stock(stock_request: StockRequest, db: Session = Depends(get_db)):
+async def create_stock(stock_request: StockRequest, background_task: BackgroundTasks,
+                       db: Session = Depends(get_db)):
     # Return a JSON response
 
     stock = Stock()
     stock.symbol = stock_request.symbol
+
     db.add(stock)
     db.commit()
+
+    # Run background task after DB committed
+    background_task.add_task(fetch_stock_data, stock.id)
+
     return {"code": "success", "message": "Stock created"}
