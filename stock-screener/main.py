@@ -1,10 +1,10 @@
 import models
+import schemas
 import yfinance  # This is Yahoo Finance package
 from database import SessionLocal, engine
 from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from models import Stock
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 app = FastAPI()
@@ -16,15 +16,11 @@ models.Base.metadata.create_all(bind=engine)
 templates = Jinja2Templates(directory="templates")
 
 
-# Create a schema for DB - this is auto validation
-class StockRequest(BaseModel):
-    symbol: str
-
-
+# Dependency
 # Make sure we can connect to DB
 def get_db():
+    db = SessionLocal()
     try:
-        db = SessionLocal()
         yield db
     finally:
         db.close()
@@ -103,7 +99,9 @@ def fetch_stock_data(id: int):
 
 @app.post("/stock")
 async def create_stock(
-    stock_request: StockRequest, background_task: BackgroundTasks, db: Session = Depends(get_db)
+    stock_request: schemas.StockRequest,
+    background_task: BackgroundTasks,
+    db: Session = Depends(get_db),
 ):
     # Return a JSON response
 
