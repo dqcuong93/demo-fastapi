@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Numeric
-
-from .database import Base
+from database import Base
+from sqlalchemy import Column, Integer, Numeric, String
 
 
 class Stock(Base):
@@ -14,4 +13,3 @@ class Stock(Base):
     dividend_yield = Column(Numeric(10, 2))
     ma50 = Column(Numeric(10, 2))
     ma200 = Column(Numeric(10, 2))
-

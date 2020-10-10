@@ -1,0 +1,6 @@
+[flake8]
+#Ignore: f-string is missing placeholders
+ignore = F541
+extend-ignore = E203, W503
+max-line-length = 100
+exclude = tests/*

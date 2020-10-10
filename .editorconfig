@@ -1,0 +1,4 @@
+# Configuration for editors
+# Docstrings and comments use max_line_length = 100
+[*.py]
+max_line_length = 100
