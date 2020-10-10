@@ -1,7 +1,7 @@
 import models
 import yfinance  # This is Yahoo Finance package
 from database import SessionLocal, engine
-from fastapi import Depends, FastAPI, Request, BackgroundTasks
+from fastapi import BackgroundTasks, Depends, FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from models import Stock
 from pydantic import BaseModel
@@ -58,22 +58,23 @@ def fetch_stock_data(id: int):
 
     yahoo_data = yfinance.Ticker(stock.symbol)
 
-    stock.ma200 = yahoo_data.info['twoHundredDayAverage']
-    stock.ma50 = yahoo_data.info['fiftyDayAverage']
-    stock.price = yahoo_data.info['previousClose']
-    stock.forward_pe = yahoo_data.info['forwardPE']
-    stock.forward_eps = yahoo_data.info['forwardEps']
+    stock.ma200 = yahoo_data.info["twoHundredDayAverage"]
+    stock.ma50 = yahoo_data.info["fiftyDayAverage"]
+    stock.price = yahoo_data.info["previousClose"]
+    stock.forward_pe = yahoo_data.info["forwardPE"]
+    stock.forward_eps = yahoo_data.info["forwardEps"]
 
-    if yahoo_data.info['dividendYield'] is not None:
-        stock.dividend_yield = yahoo_data.info['dividendYield'] * 100
+    if yahoo_data.info["dividendYield"] is not None:
+        stock.dividend_yield = yahoo_data.info["dividendYield"] * 100
 
     db.add(stock)
     db.commit()
 
 
 @app.post("/stock")
-async def create_stock(stock_request: StockRequest, background_task: BackgroundTasks,
-                       db: Session = Depends(get_db)):
+async def create_stock(
+    stock_request: StockRequest, background_task: BackgroundTasks, db: Session = Depends(get_db)
+):
     # Return a JSON response
 
     stock = Stock()
