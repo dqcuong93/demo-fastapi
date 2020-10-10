@@ -31,17 +31,21 @@ def get_db():
 
 
 @app.get("/")
-def home(request: Request):
+def home(request: Request, db: Session = Depends(get_db)):
     """
     This is the root path - home path
+
     :param request:
     :return:
     """
+
+    stocks = db.query(Stock).all()
+
     return templates.TemplateResponse(
         "home.html",
         {
             "request": request,
-            "test_var": 1993,  # Call this variable in your template using Jinja2 syntax
+            "stocks": stocks,
         },
     )
 
